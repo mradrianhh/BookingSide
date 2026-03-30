@@ -49,10 +49,13 @@ export async function sendBookingConfirmation(
   customerEmail: string,
   customerName: string,
   bookingDate: Date,
-  participants: number
+  participants: number,
+  cancellationToken: string
 ) {
   try {
     const mail = getTransporter();
+    const cancellationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/cancel/${cancellationToken}`;
+    
     await mail.sendMail({
       from: process.env.GMAIL_USER,
       to: customerEmail,
@@ -67,6 +70,13 @@ export async function sendBookingConfirmation(
           <li>Number of Participants: ${participants}</li>
         </ul>
         <p>We look forward to seeing you!</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #ccc;">
+        <p style="color: #666; font-size: 14px;">
+          <strong>Need to cancel?</strong><br>
+          <a href="${cancellationLink}" style="color: #3b82f6; text-decoration: none;">
+            Click here to cancel your booking
+          </a>
+        </p>
       `,
     });
     return { success: true };
@@ -107,6 +117,43 @@ export async function sendBookingCancellation(
     return { success: true };
   } catch (error) {
     console.error('Error sending cancellation email:', error);
+    throw error;
+  }
+}
+
+export async function sendBookingCancellationConfirmation(
+  customerEmail: string,
+  customerName: string,
+  bookingDate: Date,
+  participants: number,
+  feedback: string | null
+) {
+  try {
+    const mail = getTransporter();
+    await mail.sendMail({
+      from: process.env.GMAIL_USER,
+      to: customerEmail,
+      subject: 'Booking Cancellation Confirmed - RIB Safari',
+      html: `
+        <h2>Booking Cancellation Confirmed</h2>
+        <p>Dear ${customerName},</p>
+        <p>Your RIB Safari booking has been successfully cancelled.</p>
+        <p><strong>Cancelled Booking Details:</strong></p>
+        <ul>
+          <li>Date: ${bookingDate.toLocaleDateString()}</li>
+          <li>Number of Participants: ${participants}</li>
+        </ul>
+        ${feedback ? `
+          <p><strong>Your Feedback:</strong></p>
+          <p>${feedback.replace(/\n/g, '<br>')}</p>
+        ` : ''}
+        <p>If you'd like to rebook or have any questions, please visit our website or contact us.</p>
+        <p>Best regards,<br>RIB Safari Team</p>
+      `,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending cancellation confirmation:', error);
     throw error;
   }
 }

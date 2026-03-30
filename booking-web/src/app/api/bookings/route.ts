@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     );
 
     try {
-      await sendBookingConfirmation(customerEmail, customerName, bookingDateObj, participants);
+      await sendBookingConfirmation(customerEmail, customerName, bookingDateObj, participants, booking.cancellation_token);
     } catch (emailError) {
       console.warn('Booking created but confirmation email failed:', emailError);
     }
