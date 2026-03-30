@@ -52,19 +52,7 @@ export async function DELETE(request: Request) {
       // Continue with deletion even if email fails
     }
 
-    // Create cancellation notification BEFORE deleting the booking
-    try {
-      await createNotification(
-        'cancellation',
-        `Booking cancelled for ${booking.customer_name} (${booking.participants} participants)`,
-        bookingId
-      );
-    } catch (notificationError) {
-      console.error('Failed to create notification:', notificationError);
-      // Don't fail the request if notification fails
-    }
-
-    // Delete the booking
+    // Delete the booking (no notification on admin cancellation)
     const deleteResult = await query(
       'DELETE FROM bookings WHERE id = $1 RETURNING *',
       [bookingId]

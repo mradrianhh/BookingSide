@@ -43,13 +43,7 @@ export async function POST(req: NextRequest) {
       // Continue with deletion even if email fails
     }
 
-    // Delete the booking
-    await query(
-      'DELETE FROM bookings WHERE cancellation_token = $1',
-      [cancellationToken]
-    );
-
-    // Create cancellation notification for admin
+    // Create cancellation notification for admin BEFORE deleting the booking
     try {
       await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/admin/notify`, {
         method: 'POST',
@@ -64,6 +58,12 @@ export async function POST(req: NextRequest) {
       console.error('Failed to create cancellation notification:', notificationError);
       // Don't fail the request if notification fails
     }
+
+    // Delete the booking
+    await query(
+      'DELETE FROM bookings WHERE cancellation_token = $1',
+      [cancellationToken]
+    );
 
     return NextResponse.json(
       {

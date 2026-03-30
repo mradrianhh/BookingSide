@@ -71,12 +71,21 @@ export async function POST(req: NextRequest) {
 
     // Create notification for admin
     try {
+      const bookingDateFormatted = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(bookingDateObj);
+
       await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/admin/notify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'booking',
-          message: `New booking from ${customerName} (${participants} participant${participants !== 1 ? 's' : ''})`,
+          message: `New booking from ${customerName} for ${bookingDateFormatted} (${participants} participant${participants !== 1 ? 's' : ''})`,
           bookingId: booking.id,
         }),
       });
