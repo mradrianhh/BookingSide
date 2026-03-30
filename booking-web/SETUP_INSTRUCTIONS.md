@@ -1,0 +1,244 @@
+# RIB Safari Booking POC - Setup Instructions with Podman
+
+## Project Complete! ✅
+
+Your RIB Safari booking POC is fully built and ready to run with Podman locally.
+
+## What's Built
+
+### Frontend (Next.js + React)
+- ✅ **Homepage** - Beautiful landing page with booking calendar
+- ✅ **About Page** - Company story, tours, and features
+- ✅ **Booking Calendar** - Interactive month calendar with form
+- ✅ **Chat Dialog** - Contact form with phone/email display
+- ✅ **Navigation** - Header with links to Home and About
+- ✅ **Responsive Design** - TailwindCSS styling (mobile-friendly)
+
+### Backend (Node.js API Routes)
+- ✅ **POST /api/bookings** - Accept and save bookings
+- ✅ **GET /api/bookings** - Retrieve all bookings
+- ✅ **POST /api/contact** - Handle contact form submissions
+
+### Database (PostgreSQL)
+- ✅ **bookings table** - Stores customer bookings
+  - customer_name, customer_email, customer_phone
+  - booking_date, participants, notes
+  - created_at, updated_at timestamps
+
+### Email Service (Nodemailer)
+- ✅ **Booking confirmations** - Auto-sent to customers
+- ✅ **Contact forms** - Sent to hansen.adrian.hardy@gmail.com
+
+### Deployment
+- ✅ **podman-compose.yml** - Orchestrates app + database
+- ✅ **Dockerfile** - Containerizes Next.js app
+- ✅ **Environment setup** - .env.local for secrets
+
+## Getting Started
+
+### Prerequisites
+- Podman installed (no daemon required)
+- Gmail account with 2FA enabled
+
+### Step 1: Get Gmail App Password
+1. Go to https://myaccount.google.com/apppasswords
+2. Select Mail → Windows Computer
+3. Copy the 16-character password
+
+### Step 2: Configure Project
+```bash
+cd /Users/Adrian.Hardy.Hansen/Documents/Projects/BookingSide/booking-web
+
+# Create .env.local from template
+cp .env.local.example .env.local
+
+# Edit .env.local and add your Gmail app password
+# GMAIL_APP_PASSWORD=your_16_char_password_here
+```
+
+### Step 3: Run with Podman
+```bash
+podman-compose up
+```
+
+For rootless Podman:
+```bash
+podman-compose --podman-args "--userns=keep-id" up
+```
+
+Wait for PostgreSQL to start (you'll see "database is ready to accept connections")
+
+### Step 4: Access the Application
+- **Homepage:** http://localhost:3000
+- **About:** http://localhost:3000/about
+- **Chat button:** Bottom-right corner of any page
+
+## How to Use
+
+### Make a Booking
+1. Click on a date in the calendar
+2. Fill in your details (name, email, phone)
+3. Select number of participants
+4. Add any special notes (optional)
+5. Click "Confirm Booking"
+6. You'll receive a confirmation email
+
+### Contact Support
+1. Click the chat button (bottom-right)
+2. Fill in your details
+3. Type your message
+4. Click "Send Message"
+5. Message sent to hansen.adrian.hardy@gmail.com
+6. You'll receive replies at your email
+
+## API Usage
+
+### Create Booking
+```bash
+curl -X POST http://localhost:3000/api/bookings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerName": "John Doe",
+    "customerEmail": "john@example.com",
+    "customerPhone": "+1 555-0123",
+    "bookingDate": "2024-04-15T10:00:00Z",
+    "participants": 4,
+    "notes": "Group booking"
+  }'
+```
+
+### Get All Bookings
+```bash
+curl http://localhost:3000/api/bookings
+```
+
+### Send Contact Message
+```bash
+curl -X POST http://localhost:3000/api/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "message": "I have a question about private charters..."
+  }'
+```
+
+## Podman Commands
+
+```bash
+# Start services
+podman-compose up
+
+# Start in background
+podman-compose up -d
+
+# Stop services
+podman-compose down
+
+# Reset database (warning: deletes all data)
+podman-compose down -v
+
+# View logs
+podman-compose logs -f
+
+# View specific service logs
+podman-compose logs -f web
+podman-compose logs -f postgres
+
+# For rootless Podman, add args:
+podman-compose --podman-args "--userns=keep-id" up
+```
+
+## Troubleshooting
+
+### Port Already in Use
+If 3000 or 5432 is already in use, edit docker-compose.yml:
+```yaml
+services:
+  web:
+    ports:
+      - "3001:3000"  # Change 3000 to 3001
+  postgres:
+    ports:
+      - "5433:5432"  # Change 5432 to 5433
+```
+
+### Database Connection Failed
+- Ensure PostgreSQL container is healthy: `podman-compose logs postgres`
+- Wait a few seconds for database to initialize
+- Check DATABASE_URL in .env.local
+
+### Email Not Sending
+- Verify GMAIL_APP_PASSWORD is correct (16 characters)
+- Check that 2FA is enabled on Gmail account
+- Check container logs: `podman-compose logs web`
+- Verify GMAIL_USER is correct in .env.local
+
+### Permission Denied (rootless Podman)
+Use the rootless flag:
+```bash
+podman-compose --podman-args "--userns=keep-id" up
+```
+
+### Build Issues
+```bash
+# Clear Podman and rebuild
+podman-compose down
+podman system prune
+podman-compose up --build
+```
+
+## Development Without Podman
+
+If you want to run locally without containers:
+
+1. Install PostgreSQL locally
+2. Create database: `createdb booking_db`
+3. Update DATABASE_URL in .env.local: `postgresql://user:password@localhost:5432/booking_db`
+4. Run migrations: `psql -d booking_db -f public/migrations/001_create_bookings_table.sql`
+5. Start dev server: `npm run dev`
+
+## Next Steps
+
+Ready to move toward production?
+
+1. **Deploy to Cloud** - Vercel (frontend) + Railway/Render (backend)
+2. **Add Auth** - User accounts and admin panel
+3. **Availability** - Limit bookings per day/time
+4. **Payments** - Stripe integration for deposits
+5. **Monitoring** - Error tracking and analytics
+6. **Backups** - Automated PostgreSQL backups
+
+## File Reference
+
+| File | Purpose |
+|------|---------|
+| `src/app/page.tsx` | Homepage with hero section |
+| `src/app/about/page.tsx` | About page with company info |
+| `src/app/layout.tsx` | Root layout with navigation |
+| `src/components/BookingCalendar.tsx` | Calendar + booking form |
+| `src/components/ChatDialog.tsx` | Contact modal dialog |
+| `src/lib/db.ts` | PostgreSQL connection & queries |
+| `src/lib/email.ts` | Nodemailer configuration |
+| `src/app/api/bookings/route.ts` | Booking endpoints |
+| `src/app/api/contact/route.ts` | Contact form endpoint |
+| `docker-compose.yml` | Podman Compose orchestration |
+| `Dockerfile` | Next.js container image |
+| `.env.local` | Environment variables |
+
+## Tech Stack Summary
+
+- **Framework:** Next.js 16 with App Router
+- **Language:** TypeScript
+- **Styling:** TailwindCSS
+- **Database:** PostgreSQL 16
+- **ORM/Query:** Raw SQL with pg library
+- **Email:** Nodemailer
+- **Container:** Podman & Podman Compose (no daemon)
+- **Server:** Node.js
+
+---
+
+**Your POC is ready to ship!** 🚀
+
+Just add your Gmail app password to .env.local and run `podman-compose up`!

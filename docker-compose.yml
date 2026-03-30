@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: booking_postgres
+    environment:
+      POSTGRES_USER: booking_user
+      POSTGRES_PASSWORD: booking_password
+      POSTGRES_DB: booking_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./public/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booking_user -d booking_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - booking_network
+
+  web:
+    build:
+      context: ./booking-web
+      dockerfile: Dockerfile
+    container_name: booking_web
+    env_file: ./booking-web/.env.local
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://booking_user:booking_password@postgres:5432/booking_db
+      NEXT_PUBLIC_APP_NAME: RIB Safari Booking
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./booking-web:/app
+      - /app/node_modules
+    networks:
+      - booking_network
+    command: npm run dev
+
+  admin:
+    build:
+      context: ./booking-adminweb
+      dockerfile: Dockerfile
+    container_name: booking_admin
+    env_file: ./booking-adminweb/.env.local
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://booking_user:booking_password@postgres:5432/booking_db
+      NEXT_PUBLIC_APP_NAME: RIB Safari Admin
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./booking-adminweb:/app
+      - /app/node_modules
+    networks:
+      - booking_network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  booking_network:
+    driver: bridge

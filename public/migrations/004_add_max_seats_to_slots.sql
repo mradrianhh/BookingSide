@@ -1,0 +1,1 @@
+ALTER TABLE available_slots ADD COLUMN IF NOT EXISTS max_seats INT DEFAULT 12;
