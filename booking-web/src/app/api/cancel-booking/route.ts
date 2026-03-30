@@ -49,6 +49,22 @@ export async function POST(req: NextRequest) {
       [cancellationToken]
     );
 
+    // Create cancellation notification for admin
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/admin/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'cancellation',
+          message: `Booking cancelled by ${booking.customer_name}${feedback ? ': ' + feedback.substring(0, 50) : ''}`,
+          bookingId: booking.id,
+        }),
+      });
+    } catch (notificationError) {
+      console.error('Failed to create cancellation notification:', notificationError);
+      // Don't fail the request if notification fails
+    }
+
     return NextResponse.json(
       {
         success: true,

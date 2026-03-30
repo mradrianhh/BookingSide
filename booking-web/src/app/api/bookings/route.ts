@@ -69,6 +69,22 @@ export async function POST(req: NextRequest) {
       console.warn('Booking created but confirmation email failed:', emailError);
     }
 
+    // Create notification for admin
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/admin/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'booking',
+          message: `New booking from ${customerName} (${participants} participant${participants !== 1 ? 's' : ''})`,
+          bookingId: booking.id,
+        }),
+      });
+    } catch (notificationError) {
+      console.warn('Notification failed:', notificationError);
+      // Don't fail the booking if notification fails
+    }
+
     return NextResponse.json({ success: true, booking }, { status: 201 });
   } catch (error) {
     console.error('Booking API error:', error);

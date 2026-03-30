@@ -1,4 +1,4 @@
-import { query } from '@/lib/db';
+import { query, createNotification } from '@/lib/db';
 import { sendBookingCancellation } from '@/lib/email';
 
 export async function GET() {
@@ -50,6 +50,18 @@ export async function DELETE(request: Request) {
     } catch (emailError) {
       console.error('Email sending failed:', emailError);
       // Continue with deletion even if email fails
+    }
+
+    // Create cancellation notification BEFORE deleting the booking
+    try {
+      await createNotification(
+        'cancellation',
+        `Booking cancelled for ${booking.customer_name} (${booking.participants} participants)`,
+        bookingId
+      );
+    } catch (notificationError) {
+      console.error('Failed to create notification:', notificationError);
+      // Don't fail the request if notification fails
     }
 
     // Delete the booking

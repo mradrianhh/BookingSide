@@ -49,3 +49,15 @@ export async function getAvailableDates(month: number, year: number) {
   );
   return result.rows;
 }
+
+export async function createNotification(
+  type: 'booking' | 'cancellation',
+  message: string,
+  bookingId?: number
+) {
+  const result = await query(
+    'INSERT INTO notifications (type, message, booking_id) VALUES ($1, $2, $3) RETURNING *',
+    [type, message, bookingId || null] as any
+  );
+  return result.rows[0];
+}
