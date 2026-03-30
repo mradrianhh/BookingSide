@@ -20,7 +20,12 @@ interface Booking {
   participant_names: string;
 }
 
-export default function AdminCalendar() {
+interface AdminCalendarProps {
+  selectedBookingFromNotification?: Booking | null;
+  onBookingSelected?: () => void;
+}
+
+export default function AdminCalendar({ selectedBookingFromNotification, onBookingSelected }: AdminCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [slots, setSlots] = useState<AvailableSlot[]>([]);
@@ -41,6 +46,14 @@ export default function AdminCalendar() {
     fetchSlots();
     fetchBookings();
   }, []);
+
+  useEffect(() => {
+    // When a booking is selected from notification, open its detail modal
+    if (selectedBookingFromNotification) {
+      setSelectedBooking(selectedBookingFromNotification);
+      onBookingSelected?.();
+    }
+  }, [selectedBookingFromNotification, onBookingSelected]);
 
   const fetchSlots = async () => {
     try {

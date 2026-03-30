@@ -50,7 +50,14 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'cancellation',
-          message: `Booking cancelled by ${booking.customer_name}${feedback ? ': ' + feedback.substring(0, 50) : ''}`,
+          message: `Booking cancelled by ${booking.customer_name} for ${new Intl.DateTimeFormat('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }).format(new Date(booking.booking_date))}${feedback ? ': ' + feedback.substring(0, 50) : ''}`,
           bookingId: booking.id,
         }),
       });

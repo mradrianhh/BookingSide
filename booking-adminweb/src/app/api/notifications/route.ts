@@ -6,6 +6,7 @@ export async function GET() {
     const result = await query(`
       SELECT 
         n.id,
+        n.booking_id,
         n.type,
         n.message,
         n.is_read,

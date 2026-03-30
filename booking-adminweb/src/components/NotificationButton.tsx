@@ -11,9 +11,14 @@ interface Notification {
   customer_name?: string;
   booking_date?: string;
   participants?: number;
+  booking_id?: number;
 }
 
-export default function NotificationButton() {
+interface NotificationButtonProps {
+  onBookingNotificationClick?: (bookingId: number) => void;
+}
+
+export default function NotificationButton({ onBookingNotificationClick }: NotificationButtonProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -63,6 +68,15 @@ export default function NotificationButton() {
     }
   };
 
+  const handleNotificationClick = (notif: Notification) => {
+    markNotificationAsRead(notif.id);
+    // If it's a booking notification and we have a callback, open the booking detail
+    if (notif.type === 'booking' && notif.booking_id && onBookingNotificationClick) {
+      onBookingNotificationClick(notif.booking_id);
+      setShowNotifications(false);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const displayCount = unreadCount > 9 ? '9+' : unreadCount;
 
@@ -102,10 +116,10 @@ export default function NotificationButton() {
             notifications.map((notif) => (
               <div
                 key={notif.id}
-                onClick={() => markNotificationAsRead(notif.id)}
+                onClick={() => handleNotificationClick(notif)}
                 className={`p-4 border-b border-slate-700 cursor-pointer hover:bg-slate-700/50 transition ${
                   !notif.is_read ? 'bg-slate-700/30' : 'bg-transparent'
-                }`}
+                } ${notif.type === 'booking' ? 'hover:bg-slate-700/50' : ''}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
